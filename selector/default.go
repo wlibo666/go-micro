@@ -72,7 +72,7 @@ func (r *defaultSelector) String() string {
 
 func newDefaultSelector(opts ...Option) Selector {
 	sopts := Options{
-		Strategy: Random,
+		Strategy: RoundRobin,
 	}
 
 	for _, opt := range opts {

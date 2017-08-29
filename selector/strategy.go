@@ -30,6 +30,11 @@ func Random(services []*registry.Service) Next {
 	}
 }
 
+var (
+	roundRobinIndex = rand.Int()
+	roundRobinMtx   sync.Mutex
+)
+
 // RoundRobin is a roundrobin strategy algorithm for node selection
 func RoundRobin(services []*registry.Service) Next {
 	var nodes []*registry.Node
@@ -38,18 +43,14 @@ func RoundRobin(services []*registry.Service) Next {
 		nodes = append(nodes, service.Nodes...)
 	}
 
-	var i = rand.Int()
-	var mtx sync.Mutex
-
 	return func() (*registry.Node, error) {
 		if len(nodes) == 0 {
 			return nil, ErrNoneAvailable
 		}
-
-		mtx.Lock()
-		node := nodes[i%len(nodes)]
-		i++
-		mtx.Unlock()
+		roundRobinMtx.Lock()
+		node := nodes[roundRobinIndex%len(nodes)]
+		roundRobinIndex++
+		roundRobinMtx.Unlock()
 
 		return node, nil
 	}
